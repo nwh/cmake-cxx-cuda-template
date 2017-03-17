@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.8)
 
 project(FOOBAR)
 
+enable_testing()
+
 # set module path to include cmake directory
 set(CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/cmake
@@ -22,37 +24,13 @@ else()
 endif()
 
 # googletest
-# include(DownloadProject)
-# download_project(PROJ                googletest
-#                  GIT_REPOSITORY      https://github.com/google/googletest.git
-#                  GIT_TAG             master
-#                  UPDATE_DISCONNECTED 1
-# )
-# add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-include(ExternalProject)
-ExternalProject_Add(googletest
-  URL https://github.com/google/googletest/archive/release-1.8.0.tar.gz
-  URL_HASH MD5=16877098823401d1bf2ed7891d7dce36
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND "")
-
-set(GTEST_DIR ${CMAKE_BINARY_DIR}/googletest-prefix/src/googletest/googletest)
-add_library(gtest STATIC ${GTEST_DIR}/src/gtest-all.cc)
-target_include_directories(gtest SYSTEM PUBLIC ${GTEST_DIR}/include)
-target_include_directories(gtest PRIVATE ${GTEST_DIR})
-
-# gtest directory
-#  set(GTEST_DIR ${CMAKE_BINARY_DIR}/googletest-prefix/src/googletest/googletest)
-# gtest include
-#  ${GTEST_DIR}/include
-# gtest source
-# needs
-#  ${GTEST_DIR}/src/gtest-all.cc
-#  need to include ${GTEST_DIR}
-# gtest library
-# gtest main
-#  ${GTEST_DIR}/src/gtest_main.cc
+include(DownloadProject)
+download_project(PROJ                googletest
+                 GIT_REPOSITORY      https://github.com/google/googletest.git
+                 GIT_TAG             master
+                 UPDATE_DISCONNECTED 1
+)
+add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 
 # include directories
 # to indicate system header location
@@ -66,7 +44,7 @@ set_source_files_properties(${foobar_source} PROPERTIES LANGUAGE ${FOOBAR_LANGUA
 
 # compile for cpp
 add_library(foobar STATIC ${foobar_source})
-add_dependencies(foobar googletest)
+add_dependencies(foobar gtest)
 target_compile_features(foobar PUBLIC cxx_std_11)
 target_include_directories(foobar PUBLIC ${CMAKE_SOURCE_DIR})
 # target_compile_options()
@@ -79,8 +57,16 @@ function(foobar_executable target source_files)
   target_link_libraries(${target} foobar)
 endfunction()
 
+# foobar test function
+function(foobar_test target source_files)
+  add_executable(${target} ${source_files})
+  target_link_libraries(${target} foobar gtest_main)
+  add_test(NAME ${target} COMMAND ${target})
+endfunction()
+
 # subdirectories
 add_subdirectory(exec)
+add_subdirectory(test)
 
 #message("CMAKE_CUDA_LINK_EXECUTABLE: " ${CMAKE_CUDA_LINK_EXECUTABLE})
 #message("CMAKE_CUDA_HOST_LINK_LAUNCHER: " ${CMAKE_CUDA_HOST_LINK_LAUNCHER})
