@@ -31,6 +31,8 @@ download_project(PROJ                googletest
                  UPDATE_DISCONNECTED 1
 )
 add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+target_compile_features(gtest PUBLIC cxx_std_11)
+target_compile_features(gtest_main PUBLIC cxx_std_11)
 
 # include directories
 # to indicate system header location
@@ -60,6 +62,7 @@ endfunction()
 # foobar test function
 function(foobar_test target source_files)
   add_executable(${target} ${source_files})
+  set_source_files_properties(${source_files} PROPERTIES LANGUAGE ${FOOBAR_LANGUAGE})
   target_link_libraries(${target} foobar gtest_main)
   add_test(NAME ${target} COMMAND ${target})
 endfunction()
